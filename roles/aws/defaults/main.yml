@@ -1,4 +1,4 @@
-create_aws_credentials_file: yes
+create_aws_credentials_file: no
 
 stack_outputs: {}
 stack_name: kameshs-gloo-demos

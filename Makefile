@@ -27,7 +27,7 @@ create-kube-clusters:
 deploy-gloo:
 	ansible-playbook --vault-password-file=$(VAULT_FILE) --tags "base,gloo" playbook.yml $(EXTRA_ARGS)
 
-configure-keycloak:
+deploy-keycloak:
 	ansible-playbook --vault-password-file=$(VAULT_FILE) --tags "keycloak" playbook.yml $(EXTRA_ARGS)
 
 deploy-portal:

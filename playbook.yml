@@ -15,6 +15,10 @@
       tags:
         - cloud
         - gcp
+    - role: aws
+      tags:
+        - cloud
+        - aws
     - role: gloo
       tags:
         - gloo
