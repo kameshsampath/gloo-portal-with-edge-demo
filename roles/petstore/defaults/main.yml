@@ -1,0 +1,5 @@
+petstore_namespace: default
+petstore_portal_url: portal.kameshs.me
+petstore_api_url: api.kameshs.me
+portal_auth_enabled: no
+keycloak_admin_username: admin

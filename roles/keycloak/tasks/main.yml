@@ -1,0 +1,66 @@
+- name: "Deploy Keycloak"
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('kubernetes.core.kustomize', dir=role_path +'/files/keycloak') }}"
+    context: "{{ item.value.k8s_context }}"
+  environment:
+    KUBECONFIG: "{{ work_dir }}/.kube/config"
+    GOOGLE_APPLICATION_CREDENTIALS: "{{ gcp_cred_file }}"
+  loop: "{{ gloo_edge | dict2items}}"
+  loop_control:
+    label: "{{ item.key }}"
+  when: ( item.value.install_portal | bool )
+
+- name: "Get KeyCloak Service"
+  set_fact:
+    keycloak_service: "{{ query('kubernetes.core.k8s', kind='Service', namespace=keycloak_namespace,label_selector='app=keycloak') | first }}"
+
+- name: "Get Gloo Gateway Proxy Service"
+  set_fact:
+    gloo_proxy_service: "{{ query('kubernetes.core.k8s', kind='Service', namespace=gloo_system_namespace,label_selector='gloo=gateway-proxy') | first }}"
+
+# - debug:
+#     var: gloo_proxy_service
+
+- name: "Set KeyCloak Admin Facts"
+  set_fact:
+    gloo_gateway_ip: "{{ gloo_proxy_service.status | community.general.json_query(k8s_lb_ip_query) }}"
+    keycloak_service_ip: "{{ keycloak_service.status | community.general.json_query(k8s_lb_ip_query) }}"
+    keycloak_admin_url: "http://{{ keycloak_service.status | community.general.json_query(k8s_lb_ip_query) }}:{{ keycloak_admin_port }}/auth"
+
+- name: "Create or update Client {{ keycloak_client_id }}"
+  community.general.keycloak_client:
+    auth_keycloak_url: "{{ keycloak_admin_url }}"
+    auth_realm: "{{ keycloak_auth_realm }}"
+    auth_username: "{{ keycloak_admin_username }}"
+    auth_password: "{{ keycloak_admin_password }}"
+    client_id: "{{ keycloak_client_id }}"
+    realm: "{{ keycloak_realm }}"
+    name: "{{ keycloak_client_name }}"
+    description: "Client that will be used for all Gloo Demos"
+    service_accounts_enabled: yes
+    authorization_services_enabled: yes
+    redirect_uris: "{{ gloo_redirect_uris }}"
+    protocol_mappers:
+     - name: group
+       protocol: openid-connect
+       protocolMapper: oidc-usermodel-attribute-mapper
+       config:
+         claim.name: group
+         jsonType.label: String
+         user.attribute: group
+         id.token.claim: True
+         access.token.claim: True
+    state: present
+
+- name: "Create or Update Keycloak groups"
+  community.general.keycloak_group:
+    name: "{{ item }}"
+    auth_keycloak_url: "{{ keycloak_admin_url }}"
+    auth_realm: "{{ keycloak_auth_realm }}"
+    auth_username: "{{ keycloak_admin_username }}"
+    auth_password: "{{ keycloak_admin_password }}"
+    realm: "{{ keycloak_realm }}"
+  loop: "{{ gloo_demos_groups }}"
+  loop_control:
+    label: "Group {{ item }}"

@@ -1,0 +1,9 @@
+namespace: keycloak
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+resources:
+  - namespace.yaml
+  - deploy.yaml
+  - service.yaml

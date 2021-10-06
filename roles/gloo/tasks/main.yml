@@ -1,0 +1,107 @@
+- name: "Add Gloo Edge Helm Repo"
+  kubernetes.core.helm_repository:
+    name: glooe
+    repo_url: "https://storage.googleapis.com/gloo-ee-helm"
+
+- name: "Add Gloo Portal Helm Repo"
+  kubernetes.core.helm_repository:
+    name: gloo-portal
+    repo_url: "https://storage.googleapis.com/dev-portal-helm"
+
+- name: "Query Gloo Edge Versions"
+  ansible.builtin.command:
+    argv:
+      - helm
+      - search 
+      - repo
+      - glooe/gloo-ee
+      - -ojson
+  register: gloo_ee_version_info
+  changed_when: false
+
+- name: "Query Gloo Portal Versions"
+  ansible.builtin.command:
+    argv:
+      - helm
+      - search 
+      - repo 
+      - gloo-portal/gloo-portal 
+      - -ojson
+  register: gloo_portal_version_info
+  changed_when: false
+
+- name: "Fail when version info does not exist"
+  fail:
+    msg: "Gloo EE Version or Gloo Portal Version not available"
+  when: gloo_portal_version_info.stdout is not defined or gloo_portal_version_info.stdout is not defined
+
+
+- name: "Set Gloo Facts"
+  set_fact:
+    license_key: "{{ lookup('env', 'LICENSE_KEY') }}"
+    gloo_ee_version: "{{ gloo_ee_version_info.stdout  | from_json | first | community.general.json_query('version') }}"
+    gloo_portal_version: "{{ gloo_portal_version_info.stdout  | from_json | first | community.general.json_query('version') }}"
+    gloo_install_override_files: []
+    gloo_portal_override_files: []
+
+- name: "Create temporary gloo install directory"
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: "{{ 'gloo_ee_'+ gloo_ee_version }}"
+  register: gloo_install_tmpdir
+
+#- debug:
+#    var: gloo_install_tmpdir
+
+- name: "Create Gloo EE Helm Values"
+  template:
+    src: "install_override_values.yaml.j2"
+    dest: "{{ gloo_install_tmpdir.path }}/install-overrides.yaml"
+  register: gloo_install_override_file
+
+- name: "Create Gloo Portal Helm Values"
+  template:
+    src: "portal_values.yaml.j2"
+    dest: "{{ gloo_install_tmpdir.path }}/portal_values.yaml"
+  register: gloo_portal_override_file
+
+- name: "Set Gloo Helm Value File Facts"
+  set_fact:
+    gloo_install_override_files: "{{ gloo_install_override_files + [gloo_install_override_file.dest] }}"
+    gloo_portal_override_files: "{{ gloo_portal_override_files + [gloo_portal_override_file.dest] }}"
+
+- name: "Install Gloo Edge Enterprise"
+  kubernetes.core.helm:
+    release_name: gloo
+    chart_ref: glooe/gloo-ee
+    release_namespace: gloo-system
+    create_namespace: yes
+    context: "{{ item.value.k8s_context }}"
+    values_files: "{{ gloo_install_override_files }}"
+    wait: yes
+    wait_timeout: 5m
+  environment:
+    KUBECONFIG: "{{ work_dir }}/.kube/config"
+    GOOGLE_APPLICATION_CREDENTIALS: "{{ gcp_cred_file }}"
+  loop: "{{ gloo_edge | dict2items}}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: "Install Gloo Portal"
+  kubernetes.core.helm:
+    release_name: gloo-portal
+    chart_ref: gloo-portal/gloo-portal
+    release_namespace: gloo-portal
+    create_namespace: yes
+    context: "{{ item.value.k8s_context }}"
+    values_files: "{{ gloo_portal_override_files }}"
+    wait: yes
+    wait_timeout: 5m
+  environment:
+    KUBECONFIG: "{{ work_dir }}/.kube/config"
+    GOOGLE_APPLICATION_CREDENTIALS: "{{ gcp_cred_file }}"
+  loop: "{{ gloo_edge | dict2items}}"
+  loop_control:
+    label: "{{ item.key }}"
+  when: ( item.value.install_portal | bool )
+  

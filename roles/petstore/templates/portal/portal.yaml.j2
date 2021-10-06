@@ -1,0 +1,39 @@
+#jinja2: lstrip_blocks: "True"
+apiVersion: portal.gloo.solo.io/v1beta1
+kind: Portal
+metadata:
+  name: ecommerce-portal
+spec:
+  displayName: E-commerce Portal
+  description: The Gloo Portal for the Petstore API and much more!
+  banner:
+    fetchUrl: https://i.imgur.com/EXbBN1a.jpg
+  favicon:
+    fetchUrl: https://i.imgur.com/QQwlQG3.png
+  primaryLogo:
+    fetchUrl: https://i.imgur.com/hjgPMNP.png
+  customStyling: {}
+  staticPages: []
+
+  domains:
+  - [[ petstore_portal_url ]]
+
+  publishedEnvironments:
+  - name: dev
+    namespace: [[ petstore_namespace ]]
+
+  allApisPublicViewable: true # this will make APIs visible by unauthenticated users
+
+  {% if portal_auth_enabled %}
+  # ------------------- Authentication  ---------------------
+  oidcAuth:
+    clientId: ${KEYCLOAK_CLIENT}
+    clientSecret:
+      name: petstore-portal-oidc-secret
+      namespace: default
+      key: client_secret # this is the k8s secret created above
+    groupClaimKey: group
+    issuer: ${KEYCLOAK_URL}/realms/master
+  portalUrlPrefix: http://[[ petstore_portal_url ]]/
+  # ---------------------------------------------
+  {% endif %}

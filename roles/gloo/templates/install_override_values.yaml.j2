@@ -1,0 +1,18 @@
+license_key: {{ license_key }}
+gloo:
+  discovery:
+    enabled: true
+    fdsMode: DISABLED
+  settings:
+    writeNamespace: gloo-system
+    watchNamespaces:
+       - default
+       - blue-green-canary
+       - gloo-system
+       - gloo-portal
+       - fruits-app
+       - fruits-api
+  gatewayProxies:
+    gatewayProxy:
+      failover:
+        enabled: false

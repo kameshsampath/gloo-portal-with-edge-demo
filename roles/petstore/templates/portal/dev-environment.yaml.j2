@@ -1,0 +1,34 @@
+#jinja2: lstrip_blocks: "True"
+apiVersion: portal.gloo.solo.io/v1beta1
+kind: Environment
+metadata:
+  name: dev
+spec:
+  domains:
+  # the domain name where the API will be exposed
+    - [[ petstore_api_url ]]
+  displayInfo:
+    description: This environment is meant for developers to deploy and test their APIs.
+    displayName: Development
+  # a global basepath for our APIs
+  basePath: /ecommerce 
+  # we will select our APIProduct using a selector and the 2 version of it
+  apiProducts:
+    - namespaces:
+        - "*"
+      labels:
+        - key: app
+          operator: In
+          values:
+            - petstore
+      versions:
+        names:
+          - v1
+          - v2
+      # this will dynamically prefix the API with the version names
+      {% raw %}
+      basePath: "{%version%}"
+      {% endraw %}
+  gatewayConfig:
+    # we actually want to expose the APIs on a Gateway (optional)
+    disableRoutes: false

@@ -1,0 +1,14 @@
+#jinja2: lstrip_blocks: "True"
+namespace: [[ petstore_namespace ]]
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+resources:
+  - httpbin-sa.yaml
+  - httpbin-service.yaml
+  - httpbin.yaml
+  - petstore-v1.yaml
+  - petstore-v1-service.yaml
+  - petstore-v2.yaml
+  - petstore-v2-service.yaml

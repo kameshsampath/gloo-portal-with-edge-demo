@@ -1,0 +1,77 @@
+- name: "Get KeyCloak Service"
+  set_fact:
+    keycloak_service: "{{ query('kubernetes.core.k8s', kind='Service', namespace=keycloak_namespace,label_selector='app=keycloak') | first }}"
+
+- name: "Get Gloo Gateway Proxy Service"
+  set_fact:
+    gloo_proxy_service: "{{ query('kubernetes.core.k8s', kind='Service', namespace=gloo_system_namespace,label_selector='gloo=gateway-proxy') | first }}"
+
+# - debug:
+#     var: gloo_proxy_service
+
+- name: "Set KeyCloak Admin Facts"
+  set_fact:
+    gloo_gateway_ip: "{{ gloo_proxy_service.status | community.general.json_query(k8s_lb_ip_query) }}"
+    keycloak_service_ip: "{{ keycloak_service.status | community.general.json_query(k8s_lb_ip_query) }}"
+    keycloak_admin_url: "http://{{ keycloak_service.status | community.general.json_query(k8s_lb_ip_query) }}:{{ keycloak_admin_port }}/auth"
+
+- name: "Create Demo Templates Directory"
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: "gloo_demos"
+  register: demo_install_tmpdir
+
+- name: "Copy Petstore App Templates"
+  ansible.builtin.copy:
+    src: "{{ role_path }}/templates/app"
+    dest: "{{ demo_install_tmpdir.path }}"
+
+- name: "Kustomize Petstore App"
+  ansible.builtin.template:
+    src: "{{ demo_install_tmpdir.path }}/app/kustomization.yaml.j2"
+    dest: "{{ demo_install_tmpdir.path }}/app/kustomization.yaml"
+    variable_end_string: ']]'
+    variable_start_string: '[['
+
+- name: "Deploy Petstore Application"
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('kubernetes.core.kustomize', dir=demo_install_tmpdir.path +'/app') }}"
+    context: "{{ item.value.k8s_context }}"
+  environment:
+    KUBECONFIG: "{{ work_dir }}/.kube/config"
+    GOOGLE_APPLICATION_CREDENTIALS: "{{ gcp_cred_file }}"
+  loop: "{{ gloo_edge | dict2items}}"
+  loop_control:
+    label: "{{ item.key }}"
+
+- name: "Copy Petstore Portal Templates"
+  ansible.builtin.copy:
+    src: "{{ role_path }}/templates/portal"
+    dest: "{{ demo_install_tmpdir.path }}"
+  register: gloo_install_override_file
+
+- name: "Kustomize Petstore Portal"
+  ansible.builtin.template:
+    src: "{{ demo_install_tmpdir.path }}/portal/{{ item.src }}"
+    dest: "{{ demo_install_tmpdir.path }}/portal/{{ item.dest }}"
+    variable_end_string: ']]'
+    variable_start_string: '[['
+  loop:
+    - {src: kustomization.yaml.j2 , dest: kustomization.yaml}
+    - {src: apiproduct.yaml.j2 , dest: apiproduct.yaml}
+    - {src: dev-environment.yaml.j2 , dest: dev-environment.yaml}
+    - {src: portal.yaml.j2 , dest: portal.yaml}
+
+- name: "Deploy Petstore Portal"
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('kubernetes.core.kustomize', dir=demo_install_tmpdir.path +'/portal') }}"
+    context: "{{ item.value.k8s_context }}"
+  environment:
+    KUBECONFIG: "{{ work_dir }}/.kube/config"
+    GOOGLE_APPLICATION_CREDENTIALS: "{{ gcp_cred_file }}"
+  loop: "{{ gloo_edge | dict2items}}"
+  loop_control:
+    label: "{{ item.key }}"
+  when: ( item.value.install_portal | bool )

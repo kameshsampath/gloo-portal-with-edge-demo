@@ -1,0 +1,18 @@
+keycloak_namespace: keycloak
+k8s_lb_ip_query: 'loadBalancer.ingress[0].ip'
+keycloak_admin_port: 8080
+keycloak_admin_username: admin
+gloo_system_namespace: gloo-system
+keycloak_client_id: gloo-demos-client
+keycloak_client_name: gloo-demos-client
+keycloak_realm: master
+keycloak_auth_realm: master
+gloo_redirect_uris:
+  - https://portal.kameshs.me/callback
+  - http://portal.kameshs.me/callback
+  - "http://{{ gloo_gateway_ip }}/callback"
+  - "https://{{ gloo_gateway_ip }}/callback"
+gloo_demos_groups:
+  - users
+  - execs
+  - developers

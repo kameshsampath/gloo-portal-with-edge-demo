@@ -1,0 +1,69 @@
+- hosts: localhost
+
+  vars_files:
+    - .local.vars.yml
+
+  vars:
+    work_dir: "{{ playbook_dir }}"
+  
+  roles:
+    - role: civo
+      tags:
+        - cloud
+        - civo
+    - role: gcp
+      tags:
+        - cloud
+        - gcp
+    - role: gloo
+      tags:
+        - gloo
+    - role: keycloak
+      tags:
+        - keycloak
+        - security
+    - role: petstore
+      tags:
+        - app
+        - portal
+  
+  tasks:
+    - name: "Merge Kubconfig"
+      set_fact: 
+        kubeconfig: "{{ lookup('fileglob', work_dir +'/.kube/*.kubeconfig') | regex_replace(',',':') }}"
+      tags:
+        - work
+        - base
+
+    - name: "Debug::Available Kubeconfigs"
+      debug:
+        var: kubeconfig
+      tags:
+        - work
+        - base
+    
+    - name: "Merge and Flatten Kubeconfig"
+      local_action:
+        module: ansible.builtin.command
+        argv:
+         - kubectl 
+         - config
+         - view 
+         - --flatten
+      register: merged_kubeconfig
+      environment:
+         KUBECONFIG: "{{ kubeconfig  }}"
+      tags:
+        - work
+        - base
+
+    - name: "Save work Kubeconfig"
+      local_action:
+        module: ansible.builtin.copy
+        dest: "{{ work_dir }}/.kube/config"
+        content: "{{ merged_kubeconfig.stdout | from_yaml | to_nice_yaml(indent=2) }}"
+      tags:
+        - work
+        - base
+    
+    
