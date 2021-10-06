@@ -4,7 +4,6 @@
 
 pkgs.mkShell {
   buildInputs = [
-    pkgs.zsh-completions
     pkgs.python39
     pkgs.python39Packages.ansible
     pkgs.python39Packages.requests

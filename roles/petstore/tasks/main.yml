@@ -58,7 +58,8 @@
     variable_start_string: '[['
   loop:
     - {src: kustomization.yaml.j2 , dest: kustomization.yaml}
-    - {src: apiproduct.yaml.j2 , dest: apiproduct.yaml}
+    - {src: apiproduct-petstore.yaml.j2 , dest: apiproduct-petstore.yaml}
+    - {src: apiproduct-httpbin.yaml.j2 , dest: apiproduct-httpbin.yaml}
     - {src: dev-environment.yaml.j2 , dest: dev-environment.yaml}
     - {src: portal.yaml.j2 , dest: portal.yaml}
 
