@@ -1,0 +1,12 @@
+namespace: default
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+resources:
+  - apidoc-v1-pets.yaml
+  - apidoc-v2-full.yaml
+  - apidoc-v1-users.yaml
+  - apiproduct.yaml
+  - dev-environment.yaml
+  - portal.yaml

@@ -49,7 +49,6 @@
   ansible.builtin.copy:
     src: "{{ role_path }}/templates/portal"
     dest: "{{ demo_install_tmpdir.path }}"
-  register: gloo_install_override_file
 
 - name: "Kustomize Petstore Portal"
   ansible.builtin.template:
@@ -75,3 +74,11 @@
   loop_control:
     label: "{{ item.key }}"
   when: ( item.value.install_portal | bool )
+
+- name: "Copy Applied Kubernets Manifests to local"
+  ansible.posix.synchronize:
+    mode: pull
+    src: "{{ demo_install_tmpdir.path }}/"
+    dest: "{{ work_dir }}/manifests"
+    rsync_opts:
+      - "--exclude=**/*.j2"
