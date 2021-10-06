@@ -33,7 +33,6 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
-.envrc
 
 #mkdocs
 site
@@ -54,4 +53,4 @@ kubeconfig*
 local.gcp.conf
 .local.vars.yml
 *.url
-!.envrc.j2
+!.envrc
