@@ -15,18 +15,70 @@
     keycloak_service_ip: "{{ keycloak_service.status | community.general.json_query(k8s_lb_ip_query) }}"
     keycloak_admin_url: "http://{{ keycloak_service.status | community.general.json_query(k8s_lb_ip_query) }}:{{ keycloak_admin_port }}/auth"
 
+- name: "Create or update Client {{ keycloak_client_id }}"
+  community.general.keycloak_client:
+    auth_keycloak_url: "{{ keycloak_admin_url }}"
+    auth_realm: "{{ keycloak_auth_realm }}"
+    auth_username: "{{ keycloak_admin_username }}"
+    auth_password: "{{ keycloak_admin_password }}"
+    client_id: "{{ keycloak_client_id }}"
+  register: gloo_demos_kc_client
+  when: portal_auth_enabled | bool
+
+- name: "Set Keyclock Client ID Facts"
+  set_fact:
+    client_id: "{{ gloo_demos_kc_client.end_state.id }}"
+  when: portal_auth_enabled | bool
+
+- name: "Get Keycloak Admin Token"
+  ansible.builtin.uri:
+    url: "{{ keycloak_admin_url }}/realms/{{ keycloak_auth_realm }}/protocol/openid-connect/token"
+    body_format: form-urlencoded
+    body:
+      client_id: "admin-cli"
+      username: "{{ keycloak_admin_username }}"
+      password: "{{ keycloak_admin_password }}"
+      grant_type: password
+    method: POST
+    return_content: yes
+  register: keycloak_token_result
+  when: portal_auth_enabled | bool
+
+- name: "Extract Keycloak Admin Access Token"
+  set_fact:
+    keycloak_admin_token: "{{ keycloak_token_result.json.access_token }}"
+  when: portal_auth_enabled | bool
+
+# - debug:
+#     msg: "Client Id {{ client_id }} KeyCloak Client ID {{ keycloak_client_id }}"
+
+- name: "Get Client Secret"
+  ansible.builtin.uri:
+    url: "{{ keycloak_admin_url }}/admin/realms/{{ keycloak_realm }}/clients/{{ client_id }}/client-secret"
+    body_format: json
+    return_content: yes
+    headers: 
+      Authorization: "bearer {{ keycloak_admin_token }}"
+  register: keycloak_client_secret_result
+  when: portal_auth_enabled | bool
+
+- name: "Extract Keycloak Admin Access Token"
+  set_fact:
+    client_secret: "{{ keycloak_client_secret_result.json.value }}"
+  when: portal_auth_enabled | bool
+
 - name: "Create Demo Templates Directory"
   ansible.builtin.tempfile:
     state: directory
     prefix: "gloo_demos"
   register: demo_install_tmpdir
 
-- name: "Copy Petstore App Templates"
+- name: "Copy App Templates"
   ansible.builtin.copy:
     src: "{{ role_path }}/templates/app"
     dest: "{{ demo_install_tmpdir.path }}"
 
-- name: "Kustomize Petstore App"
+- name: "Kustomize Apps"
   ansible.builtin.template:
     src: "{{ demo_install_tmpdir.path }}/app/kustomization.yaml.j2"
     dest: "{{ demo_install_tmpdir.path }}/app/kustomization.yaml"
@@ -45,6 +97,19 @@
   loop_control:
     label: "{{ item.key }}"
 
+- name: "Create Keycloak ODIC Secret"
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ portal_keycloak_auth_secret_name }}"
+        namespace: "{{ petstore_namespace }}"
+      data:
+        client_secret: "{{ client_secret | b64encode }}"
+  when: portal_auth_enabled | bool
+
 - name: "Copy Petstore Portal Templates"
   ansible.builtin.copy:
     src: "{{ role_path }}/templates/portal"
@@ -62,6 +127,7 @@
     - {src: apiproduct-httpbin.yaml.j2 , dest: apiproduct-httpbin.yaml}
     - {src: dev-environment.yaml.j2 , dest: dev-environment.yaml}
     - {src: portal.yaml.j2 , dest: portal.yaml}
+    - {src: group-users.yaml.j2 , dest: group-users.yaml}
 
 - name: "Deploy Petstore Portal"
   kubernetes.core.k8s:

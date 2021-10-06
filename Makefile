@@ -33,5 +33,8 @@ configure-keycloak:
 deploy-portal:
 	ansible-playbook --vault-password-file=$(VAULT_FILE) --tags "portal" playbook.yml $(EXTRA_ARGS)
 
+secure-portal:
+	ansible-playbook --vault-password-file=$(VAULT_FILE) --tags "portal" playbook.yml --extra-vars="portal_auth_enabled=yes" $(EXTRA_ARGS)
+
 test:
 	ansible-playbook --vault-password-file=$(VAULT_FILE) test.yml  $(EXTRA_ARGS)

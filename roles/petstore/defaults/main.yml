@@ -3,3 +3,4 @@ petstore_portal_url: portal.kameshs.me
 petstore_api_url: api.kameshs.me
 portal_auth_enabled: no
 keycloak_admin_username: admin
+portal_keycloak_auth_secret_name: petstore-portal-oidc-secret

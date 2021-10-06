@@ -27,13 +27,13 @@ spec:
   {% if portal_auth_enabled %}
   # ------------------- Authentication  ---------------------
   oidcAuth:
-    clientId: ${KEYCLOAK_CLIENT}
+    clientId: [[ keycloak_client_id ]]
     clientSecret:
-      name: petstore-portal-oidc-secret
-      namespace: default
-      key: client_secret # this is the k8s secret created above
+      name: [[ portal_keycloak_auth_secret_name ]]
+      namespace: [[ petstore_namespace ]]
+      key: client_secret
     groupClaimKey: group
-    issuer: ${KEYCLOAK_URL}/realms/master
+    issuer: [[ keycloak_admin_url ]]/realms/master
   portalUrlPrefix: http://[[ petstore_portal_url ]]/
   # ---------------------------------------------
   {% endif %}

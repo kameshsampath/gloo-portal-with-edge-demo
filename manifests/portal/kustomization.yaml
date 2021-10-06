@@ -12,3 +12,4 @@ resources:
   - apiproduct-httpbin.yaml
   - dev-environment.yaml
   - portal.yaml
+  - group-users.yaml

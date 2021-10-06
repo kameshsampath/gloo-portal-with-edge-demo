@@ -13,3 +13,6 @@ resources:
   - apiproduct-httpbin.yaml
   - dev-environment.yaml
   - portal.yaml
+  {% if portal_auth_enabled %}
+  - group-users.yaml
+  {% endif %}
