@@ -11,6 +11,7 @@ pkgs.mkShell {
     pkgs.python39Packages.google-auth
     pkgs.python39Packages.kubernetes
     pkgs.python39Packages.jsonpatch
+    pkgs.python39Packages.boto3
     pkgs.fzf
     pkgs.kubectl
     pkgs.kubernetes-helm

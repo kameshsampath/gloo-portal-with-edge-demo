@@ -54,3 +54,4 @@ local.gcp.conf
 .local.vars.yml
 *.url
 !.envrc
+.direnv
