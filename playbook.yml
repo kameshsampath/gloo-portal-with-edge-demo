@@ -9,7 +9,7 @@
   roles:
     - role: civo
       tags:
-        - cloud
+        # - cloud
         - civo
     - role: gcp
       tags:
@@ -17,7 +17,7 @@
         - gcp
     - role: aws
       tags:
-        - cloud
+       # - cloud
         - aws
     - role: gloo
       tags:

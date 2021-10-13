@@ -1,54 +1,78 @@
-{ pkgs ? import
-  (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-21.05.tar.gz")
-  { } }:
-
+{ pkgs, mypkgs }:
 pkgs.mkShell {
+  name = "gloo.demos";
   buildInputs = [
-    pkgs.python39
-    pkgs.python39Packages.ansible
-    pkgs.python39Packages.requests
-    pkgs.python39Packages.cryptography
-    pkgs.python39Packages.google-auth
-    pkgs.python39Packages.kubernetes
-    pkgs.python39Packages.jsonpatch
-    pkgs.python39Packages.boto3
-    pkgs.fzf
-    pkgs.kubectl
-    pkgs.kubernetes-helm
-    pkgs.kustomize
+    mypkgs.kubectl-aliases
+    pkgs.bash
+    pkgs.bash-completion
+    pkgs.nix-bash-completions
+    pkgs.bashInteractive
+    pkgs.binutils
+    pkgs.coreutils
+    pkgs.curl
+    pkgs.direnv
+    pkgs.findutils
+    pkgs.gawk
+    pkgs.gnutar
+    pkgs.gnused
+    pkgs.gnugrep
+    pkgs.gettext
+    pkgs.gzip
+    pkgs.httpie
     pkgs.jq
-    pkgs.yq-go
-    pkgs.docker
-    pkgs.kind
-    pkgs.google-cloud-sdk
     pkgs.kubectx
-    pkgs.stern
+    pkgs.kubectl
+    pkgs.kustomize
+    pkgs.kubernetes-helm
+    pkgs.nix-direnv
+    pkgs.patchelf
+    pkgs.yq-go
+    pkgs.vim
+    pkgs.python39
+    pkgs.vagrant
+    pkgs.wget
   ];
 
   shellHook = ''
-    export PATH=$HOME/.local/bin:$PATH
-
-    if [ -f $HOME/.kubectl_aliases ];
+    if [ $SHELL == '/bin/bash' ];
+    then 
+      source "${pkgs.bash-completion}/share/bash-completion/bash_completion"
+      # some helpers for kube
+      alias k=kubectl
+      source <(kubectl completion bash)
+      complete -F __start_kubectl k
+      # direnv setup
+      eval "$(direnv hook bash)"
+    elif [ $SHELL == '/bin/zsh' ];
     then
-      source $HOME/.kubectl_aliases
+      # direnv setup
+      eval "$(direnv hook zsh)"
     fi
 
-    if [ -f $HOME/.exports ];
-    then
-      source $HOME/.exports
-    fi
+    # keeping collections local to the project 
+    export ANSIBLE_COLLECTIONS_PATHS="$PWD/.ansible/collections"
+    mkdir -p "$ANSIBLE_COLLECTIONS_PATHS"
+        
+    # the kube config file location, so that it does not pollute global ~/.kube/config of the user
+    mkdir -p "$PWD/.kube"
+    export KUBECONFIG="$PWD/.kube/config"
+    
+    # source kubectl aliases
+    source "${mypkgs.kubectl-aliases}/kubectl_aliases"
 
-    if [ -f $HOME/.aliases ];
-    then
-      source $HOME/.aliases
-    fi
+    poetry install
 
+    poetry shell
+
+    # install all the Ansible collections/roles
     ansible-galaxy collection install -r requirements.yml
 
   '';
 
   LICENSE_KEY = builtins.getEnv "GLOO_LICENSE_KEY";
+  # update it if you want to change the cluster context names
   CLUSTER1 = "gke";
-  CLUSTER2 = "civo";
-  KUBECONFIG = builtins.toString ./.kube/config;
+  CLUSTER2 = "aws";
+  MGMT = "civo";
+  # CLUSTER4 = "azure";
 }

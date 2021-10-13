@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "gloo-edge-portal-demos"
+version = "0.1.0"
+description = ""
+authors = ["Kamesh Sampath <kamesh.sampath@solo.io>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+ansible = "^4.6.0"
+google-oauth = "^1.0.0"
+kubernetes = "^18.20.0"
+requests = "^2.26.0"
+jmespath = "^0.10.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

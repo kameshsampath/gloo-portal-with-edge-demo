@@ -25,12 +25,14 @@ spec:
 
   # ------------------- Authentication  ---------------------
   oidcAuth:
-    clientId: gloo-demos-client
+    clientId: 0oa27ibhgf4QiAikO5d7
     clientSecret:
       name: petstore-portal-oidc-secret
       namespace: default
       key: client_secret
-    groupClaimKey: group
-    issuer: http://35.200.196.74:8080/auth/realms/master
+    groupClaimKey: groups
+    additionalScopes:
+     - groups
+    issuer: https://dev-25432879.okta.com
   portalUrlPrefix: http://portal.kameshs.me/
   # ---------------------------------------------

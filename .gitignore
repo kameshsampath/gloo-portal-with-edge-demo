@@ -1,6 +1,8 @@
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+.ansible
+
 !bin
 !.vscode
 
@@ -53,5 +55,16 @@ kubeconfig*
 local.gcp.conf
 .local.vars.yml
 *.url
-!.envrc
+
+# nix
+
+result
+result-*
+.pre-commit-config.yaml
 .direnv
+
+# vagrant
+.vagrant 
+
+.envrc
+.env*

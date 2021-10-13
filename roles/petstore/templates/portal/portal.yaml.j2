@@ -32,6 +32,8 @@ spec:
       name: [[ portal_keycloak_auth_secret_name ]]
       namespace: [[ petstore_namespace ]]
       key: client_secret
+    additionalScopes:
+     - groups
     groupClaimKey: group
     issuer: [[ keycloak_admin_url ]]/realms/master
   portalUrlPrefix: http://[[ petstore_portal_url ]]/

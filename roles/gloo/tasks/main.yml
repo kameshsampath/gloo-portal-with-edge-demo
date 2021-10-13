@@ -35,7 +35,6 @@
     msg: "Gloo EE Version or Gloo Portal Version not available"
   when: gloo_portal_version_info.stdout is not defined or gloo_portal_version_info.stdout is not defined
 
-
 - name: "Set Gloo Facts"
   set_fact:
     license_key: "{{ lookup('env', 'LICENSE_KEY') }}"

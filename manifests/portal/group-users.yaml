@@ -9,4 +9,4 @@ spec:
     - name: ecommerce-portal
       namespace: default
   oidcGroup:
-    groupName: users 
+    groupName: Gloo Demo Users 
