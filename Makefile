@@ -30,7 +30,7 @@ deploy-gloo:
 deploy-keycloak:
 	ansible-playbook --vault-password-file=$(VAULT_FILE) --tags "keycloak" playbook.yml $(EXTRA_ARGS)
 
-deploy-portal:
+deploy-portal:  deploy-keycloak
 	ansible-playbook --vault-password-file=$(VAULT_FILE) --tags "portal" playbook.yml $(EXTRA_ARGS)
 
 secure-portal:

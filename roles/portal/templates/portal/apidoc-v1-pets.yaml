@@ -1,7 +1,7 @@
 apiVersion: portal.gloo.solo.io/v1beta1
 kind: APIDoc
 metadata:
-  name:  petstore-openapi-v1-petsx
+  name:  petstore-openapi-v1-pets
 spec:
   openApi:
     content:

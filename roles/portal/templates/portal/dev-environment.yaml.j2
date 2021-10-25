@@ -43,6 +43,20 @@ spec:
       {% raw %}
       basePath: "{%version%}"
       {% endraw %}
+    - namespaces:
+        - "*"
+      labels:
+        - key: app
+          operator: In
+          values:
+            - bookinfo
+      versions:
+        names:
+          - v1
+      # this will dynamically prefix the API with the version names
+      {% raw %}
+      basePath: "{%version%}"
+      {% endraw %}
   gatewayConfig:
     # we actually want to expose the APIs on a Gateway (optional)
     disableRoutes: false

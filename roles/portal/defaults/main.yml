@@ -1,6 +1,7 @@
 petstore_namespace: default
-petstore_portal_url: portal.kameshs.me
-petstore_api_url: api.kameshs.me
+gloo_portal_domain: example.com
+petstore_portal_url: "portal.[[ gloo_portal_domain ]]"
+petstore_api_url: "api.[[ gloo_portal_domain ]]"
 portal_auth_enabled: no
 keycloak_admin_username: admin
 portal_keycloak_auth_secret_name: petstore-portal-oidc-secret

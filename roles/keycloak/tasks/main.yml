@@ -20,7 +20,7 @@
     gloo_proxy_service: "{{ query('kubernetes.core.k8s', kind='Service', namespace=gloo_system_namespace,label_selector='gloo=gateway-proxy') | first }}"
 
 # - debug:
-#     var: gloo_proxy_service
+#     var: keycloak_admin_password
 
 - name: "Set KeyCloak Admin Facts"
   set_fact:

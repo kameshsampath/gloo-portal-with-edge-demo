@@ -97,6 +97,18 @@
   loop_control:
     label: "{{ item.key }}"
 
+- name: "Deploy Bookinfo Application"
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('kubernetes.core.kustomize', dir=demo_install_tmpdir.path +'/app/bookinfo') }}"
+    context: "{{ item.value.k8s_context }}"
+  environment:
+    KUBECONFIG: "{{ work_dir }}/.kube/config"
+    GOOGLE_APPLICATION_CREDENTIALS: "{{ gcp_cred_file }}"
+  loop: "{{ gloo_edge | dict2items}}"
+  loop_control:
+    label: "{{ item.key }}"
+
 - name: "Create Keycloak ODIC Secret"
   kubernetes.core.k8s:
     state: present
@@ -110,12 +122,12 @@
         client_secret: "{{ client_secret | b64encode }}"
   when: portal_auth_enabled | bool
 
-- name: "Copy Petstore Portal Templates"
+- name: "Copy Ecommerce Portal Templates"
   ansible.builtin.copy:
     src: "{{ role_path }}/templates/portal"
     dest: "{{ demo_install_tmpdir.path }}"
 
-- name: "Kustomize Petstore Portal"
+- name: "Kustomize Ecommerce Portal"
   ansible.builtin.template:
     src: "{{ demo_install_tmpdir.path }}/portal/{{ item.src }}"
     dest: "{{ demo_install_tmpdir.path }}/portal/{{ item.dest }}"
@@ -125,11 +137,12 @@
     - {src: kustomization.yaml.j2 , dest: kustomization.yaml}
     - {src: apiproduct-petstore.yaml.j2 , dest: apiproduct-petstore.yaml}
     - {src: apiproduct-httpbin.yaml.j2 , dest: apiproduct-httpbin.yaml}
+    - {src: apiproduct-bookinfo.yaml.j2 , dest: apiproduct-bookinfo.yaml}
     - {src: dev-environment.yaml.j2 , dest: dev-environment.yaml}
     - {src: portal.yaml.j2 , dest: portal.yaml}
     - {src: group-users.yaml.j2 , dest: group-users.yaml}
 
-- name: "Deploy Petstore Portal"
+- name: "Deploy Ecommerce Portal"
   kubernetes.core.k8s:
     state: present
     definition: "{{ lookup('kubernetes.core.kustomize', dir=demo_install_tmpdir.path +'/portal') }}"

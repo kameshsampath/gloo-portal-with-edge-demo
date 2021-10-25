@@ -10,6 +10,10 @@ keycloak_auth_realm: master
 gloo_redirect_uris:
   - https://portal.kameshs.me/callback
   - http://portal.kameshs.me/callback
+  - http://bookinfo.kameshs.me/callback
+  - https://bookinfo.kameshs.me/callback
+  - http://gloo.kameshs.me/callback
+  - https://gloo.kameshs.me/callback
   - "http://{{ gloo_gateway_ip }}/callback"
   - "https://{{ gloo_gateway_ip }}/callback"
 gloo_demos_groups:

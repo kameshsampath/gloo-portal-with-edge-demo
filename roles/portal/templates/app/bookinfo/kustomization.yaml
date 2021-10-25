@@ -1,0 +1,8 @@
+#jinja2: lstrip_blocks: "True"
+namespace: bookinfo
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+resources:
+  - bookinfo.yaml

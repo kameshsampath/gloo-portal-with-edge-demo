@@ -40,6 +40,19 @@ spec:
       # this will dynamically prefix the API with the version names
 
       basePath: "{%version%}"
+    - namespaces:
+        - "*"
+      labels:
+        - key: app
+          operator: In
+          values:
+            - bookinfo
+      versions:
+        names:
+          - v1
+      # this will dynamically prefix the API with the version names
+
+      basePath: "{%version%}"
   gatewayConfig:
     # we actually want to expose the APIs on a Gateway (optional)
     disableRoutes: false

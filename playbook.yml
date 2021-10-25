@@ -26,7 +26,7 @@
       tags:
         - keycloak
         - security
-    - role: petstore
+    - role: portal
       tags:
         - app
         - portal

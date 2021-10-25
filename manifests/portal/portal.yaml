@@ -23,16 +23,3 @@ spec:
 
   allApisPublicViewable: true # this will make APIs visible by unauthenticated users
 
-  # ------------------- Authentication  ---------------------
-  oidcAuth:
-    clientId: 0oa27ibhgf4QiAikO5d7
-    clientSecret:
-      name: petstore-portal-oidc-secret
-      namespace: default
-      key: client_secret
-    groupClaimKey: groups
-    additionalScopes:
-     - groups
-    issuer: https://dev-25432879.okta.com
-  portalUrlPrefix: http://portal.kameshs.me/
-  # ---------------------------------------------
